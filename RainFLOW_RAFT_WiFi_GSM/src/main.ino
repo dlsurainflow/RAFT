@@ -410,7 +410,7 @@ float getDepth()
 ///////////////////////// END ULTRASONIC  ///////////////////////
 
 ///////////////////////// BATTERY ///////////////////////
-float getBatteryLevel()
+double getBatteryLevel()
 { // Returns State Of Charge (SOC) by voltage.
   double voltage = getBatteryVoltage();
   if (voltage <= BATTMINVOLT)
@@ -429,25 +429,30 @@ float getBatteryLevel()
 }
 double getBatteryVoltage()
 {
+  adcAttachPin(BATTERYPIN);
+  DEBUG_PRINT("Battery Pin: " + String(BATTERYPIN));
   int sampleRate = 50;
   double sum = 0;
   for (int j = 0; j < sampleRate; j++)
   {
-    sum += ReadVoltage(BATTERYPIN) / BATTERYRATIO;
-
-    wait(5);
+    double currentVoltage = ((double)ReadVoltage(BATTERYPIN) + .300) / (double)BATTERYRATIO;
+    sum += currentVoltage;
+    DEBUG_PRINT("Current Voltage: " + String(currentVoltage));
+    wait(10);
   }
-  double voltage = sum / sampleRate;
+  double voltage = sum / (double)sampleRate;
+  DEBUG_PRINT("Battery Sum: " + String(sum));
+  DEBUG_PRINT("Battery Voltage: " + String(voltage));
   return voltage;
 }
-double ReadVoltage(byte pin)
+double ReadVoltage(int pin)
 {
   double reading = analogRead(pin); // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
   if (reading < 1 || reading > 4095)
     return 0;
+  // return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
   return -0.000000000000016 * pow(reading, 4) + 0.000000000118171 * pow(reading, 3) - 0.000000301211691 * pow(reading, 2) + 0.001109019271794 * reading + 0.034143524634089;
-  wait(5);
-}
+} // Added an improved polynomial, use either, comment out as required
 ///////////////////////// END BATTERY ///////////////////////
 
 ///////////////////////// BAROMETRIC SENSOR ///////////////////////
@@ -488,15 +493,24 @@ float getTemperature()
 }
 float getHumidity()
 {
-  return bme.hum();
+  if (bme.chipModel() == BME280::ChipModel_BME280)
+    return bme.hum();
+  else
+    return 0;
 }
 float getDewPoint()
 {
-  return EnvironmentCalculations::DewPoint(getTemperature(), getHumidity(), EnvironmentCalculations::TempUnit_Celsius);
+  if (bme.chipModel() == BME280::ChipModel_BME280)
+    return EnvironmentCalculations::DewPoint(getTemperature(), getHumidity(), EnvironmentCalculations::TempUnit_Celsius);
+  else
+    return 0;
 }
 float getHeadIndex()
 {
-  return EnvironmentCalculations::HeatIndex(getTemperature(), getHumidity(), EnvironmentCalculations::TempUnit_Celsius);
+  if (bme.chipModel() == BME280::ChipModel_BME280)
+    return EnvironmentCalculations::HeatIndex(getTemperature(), getHumidity(), EnvironmentCalculations::TempUnit_Celsius);
+  else
+    return 0;
 }
 ///////////////////////// END BAROMETRIC SENSOR ///////////////////////
 ///////////////////////// MQTT ///////////////////////
@@ -757,10 +771,12 @@ void modeCheck()
   DEBUG_PRINT("Current Time: " + String(currentTime));
   DEBUG_PRINT("Current Flood Depth: " + String(curFloodDepth));
   DEBUG_PRINT("Current Battery Level: " + String(curBattLevel));
-  // DEBUG_PRINT((currentTime - lastDetectedTipMillis) >= lastTipTime);
   // mode_Standby();
   // mode_ContinuousMonitoring();
   // mode_BatterySaver();
+  if (getBatteryVoltage() <= BATTMINVOLT) // Sleep immediately to conserve power and avoid data corruption
+    sleepNoInterrupt(1800);               // Deep Sleep without Interrupt for 30 minutes)
+
   if (((curFloodDepth < minFloodDepth) && ((currentTime - lastDetectedTipMillis) >= lastTipTime)) || ((currentMode == 0) && (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER)))
   {
     mode_Standby();
@@ -827,6 +843,12 @@ void sleep(int time_to_sleep)
   // rainflowMQTT.disconnect();
   // DEBUG_PRINT("Disconnected from server.");
   wait(5000);
+  Serial.flush();
+  esp_deep_sleep_start();
+}
+void sleepNoInterrupt(int time_to_sleep)
+{
+  DEBUG_PRINT("Sleeping with no interrupt for " + String(time_to_sleep) + " Seconds");
   Serial.flush();
   esp_deep_sleep_start();
 }
@@ -949,6 +971,7 @@ void dataPublish(bool _wifiConnected, bool _gprsConnected)
   if (_gprsConnected)
   {
     bool published = mqtt.publish(topic.c_str(), payloadBuffer.c_str());
+    DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
     DEBUG_PRINT("Published: " + String(published));
   }
   else if (!_gprsConnected && SMS_ENABLED)
@@ -1029,6 +1052,7 @@ void infoPublish(bool _wifiConnected, bool _gprsConnected)
   if (_gprsConnected)
   {
     bool published = mqtt.publish(topic.c_str(), payloadBuffer.c_str());
+    DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
     DEBUG_PRINT("Published: " + String(published));
   }
   else if (!_gprsConnected && SMS_ENABLED)
@@ -1186,6 +1210,9 @@ void setup()
     // }
     tipTime = 0;
   }
+
+  if (getBatteryVoltage() <= BATTMINVOLT) // Sleep immediately to conserve power and avoid data corruption
+    sleepNoInterrupt(1800);               // Deep Sleep without Interrupt for 30 minutes
 
   if (!EEPROM.begin(64))
   {
