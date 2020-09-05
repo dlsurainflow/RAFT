@@ -15,7 +15,7 @@ void rainfallAmountReset();
 
 Task publishDataScheduler(10 * 60e3, TASK_FOREVER, &publishData);  // Every 10 minutes -10min*60seconds*1000
 Task checkMode(5 * 60e3, TASK_FOREVER, &modeCheck);                // Every 5 minutes
-Task rainfallReset(10 * 60e3, TASK_FOREVER, &rainfallAmountReset); // Every 5 minutes
+Task rainfallReset(10 * 60e3, TASK_FOREVER, &rainfallAmountReset); // Every 10 minutes
 Task setHeightTask(10, TASK_ONCE, &setHeight);
 Scheduler Runner;
 RTC_DATA_ATTR int bootCount = 0;
@@ -32,7 +32,6 @@ portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
 void IRAM_ATTR tippingBucket()
 {
-
   // Debounce for a quarter second = max 4 counts/second
   if (millis() - lastDetectedTipMillis > 250)
   {
@@ -92,6 +91,7 @@ double rainfallAmount()
 /////////////////////////  GSM/GPRS  ///////////////////////
 void connectGSM(int gsm_baud, int gsm_tx, int gsm_rx, const char *apn, const char *gprsUser, const char *gprsPass)
 {
+  resetModem();
   SerialGSM.begin(gsm_baud, SERIAL_8N1, gsm_tx, gsm_rx); // Initialise serial connection to GSM module
   DEBUG_PRINT("Initialising GSM.");
   DEBUG_PRINT("BAUD: " + String(gsm_baud) + "\tTX" + String(gsm_tx) + "\tRX" + String(gsm_rx));
@@ -110,14 +110,20 @@ void connectGSM(int gsm_baud, int gsm_tx, int gsm_rx, const char *apn, const cha
 }
 bool gprsConnect()
 {
-  DEBUG_PRINT("Connecting to GPRS.");
+  resetModem();
+  wait(30000);
+  modem.init();
+
   unsigned long currentMillis = millis();
-  while (!modem.gprsConnect(apn, gprsUser, gprsPass) && (millis() - currentMillis >= 30000)) // Timeout of 30 seconds
+  DEBUG_PRINT("Connecting to GPRS.");
+  if (!modem.gprsConnect(apn, gprsUser, gprsPass))
   {
-    DEBUG_PRINT("Connecting to " + String(apn));
-    wait(5000);
+    DEBUG_PRINT("GPRS Connect failed.");
+    return false;
   }
-  return modem.isGprsConnected();
+
+  DEBUG_PRINT("GPRS Connect success");
+  return true;
 }
 int signalQuality()
 {
@@ -131,6 +137,7 @@ void publishSMS(String topic, String _payload)
 
   String payloadBuffer;
   serializeJson(payload, payloadBuffer);
+  DEBUG_PRINT("Publishing via SMS: " + String(payloadBuffer) + " to gateway " + String(GATEWAY_NUMBER));
   int res = modem.sendSMS(GATEWAY_NUMBER, payloadBuffer);
   DEBUG_PRINT("SMS Sent: " + String(res));
 }
@@ -151,6 +158,16 @@ void wakeupGSM()
   SerialGSM.println("AT");
   wait(500);
   SerialGSM.println("AT+CSCLK=0");
+}
+void resetModem()
+{
+  DEBUG_PRINT("Resetting GSM Modem.");
+  pinMode(GSM_RE, OUTPUT);
+  digitalWrite(GSM_RE, LOW);
+  wait(2500);
+  digitalWrite(GSM_RE, HIGH);
+  wait(1000);
+  pinMode(GSM_RE, INPUT);
 }
 ///////////////////////// END GSM/GPRS  ///////////////////////
 
@@ -258,6 +275,7 @@ void getHeight()
 {
   float duration = 0;
   indicatorLED(true);
+  pinMode(US_RX, OUTPUT);
 
   int i = 0, counter = 0;
   for (; i < datasizeUS;)
@@ -267,14 +285,11 @@ void getHeight()
     // float speedOfSound = 331.4 + (0.606 * temp) + (0.0124 * hum);
     // float soundCM = speedOfSound / 10000;
 
-    pinMode(US_RX, OUTPUT);
     digitalWrite(US_RX, LOW);
     delayMicroseconds(2);
-
     digitalWrite(US_RX, HIGH);
     delayMicroseconds(20);
     digitalWrite(US_RX, LOW);
-    pinMode(US_RX, INPUT);
 
     duration = pulseIn(US_TX, HIGH, 26000);
 
@@ -296,6 +311,7 @@ void getHeight()
     wait(1000); // 1 Second Delay
   }
 
+  pinMode(US_RX, INPUT);
   indicatorLED(false);
 }
 float getDepth()
@@ -305,6 +321,7 @@ float getDepth()
   DEBUG_PRINT("Median Height: " + String(medianHeight));
 
   indicatorLED(true);
+  pinMode(US_RX, OUTPUT);
 
   int i = 0, counter = 0;
   for (; i < datasizeUS;)
@@ -312,14 +329,12 @@ float getDepth()
     float temp = getTemperature();
     float hum = getHumidity();
 
-    pinMode(US_RX, OUTPUT);
     digitalWrite(US_RX, LOW);
     delayMicroseconds(2);
 
     digitalWrite(US_RX, HIGH);
     delayMicroseconds(20);
     digitalWrite(US_RX, LOW);
-    pinMode(US_RX, INPUT);
 
     duration = pulseIn(US_TX, HIGH, 26000);
 
@@ -342,6 +357,7 @@ float getDepth()
   }
   // floodDepth = medianDepth;
   floodDepth = medianFilter.GetFiltered();
+  pinMode(US_RX, INPUT);
   indicatorLED(false);
 
   DEBUG_PRINT("Flood Depth: " + String(medianDepth));
@@ -381,7 +397,7 @@ double getBatteryVoltage()
   {
     double currentVoltage = ((double)ReadVoltage(BATTERYPIN) + .300) / (double)BATTERYRATIO;
     sum += currentVoltage;
-    DEBUG_PRINT("Current Voltage: " + String(currentVoltage));
+    // DEBUG_PRINT("Current Voltage: " + String(currentVoltage));
     wait(10);
   }
   double voltage = sum / (double)sampleRate;
@@ -538,18 +554,25 @@ void mode_BatterySaver()
 }
 void sleep(int time_to_sleep)
 {
-  //esp_sleep_enable_ext0_wakeup(GPIO_NUM_21, ESP_EXT1_WAKEUP_ALL_LOW:);
   esp_sleep_enable_ext1_wakeup(GPIO_PIN_BITMASK, ESP_EXT1_WAKEUP_ALL_LOW);
   esp_sleep_enable_timer_wakeup(time_to_sleep * uS_TO_S_FACTOR);
   DEBUG_PRINT("Sleeping for " + String(time_to_sleep) + " Seconds");
   wait(5000);
+  sleepGSM();
   Serial.flush();
+  indicatorLED(true);
+  indicatorLED1(true);
+  wait(100);
+  indicatorLED(false);
+  indicatorLED1(false);
   esp_deep_sleep_start();
 }
 void sleepNoInterrupt(int time_to_sleep)
 {
+  esp_sleep_enable_timer_wakeup(time_to_sleep * uS_TO_S_FACTOR);
   DEBUG_PRINT("Sleeping with no interrupt for " + String(time_to_sleep) + " Seconds");
   Serial.flush();
+  wait(1000);
   esp_deep_sleep_start();
 }
 void print_wakeup_reason()
@@ -712,16 +735,10 @@ void infoPublish(bool connected)
 
   JsonObject objectWifi = payload_Data.createNestedObject("wifiRSSI");
   objectWifi["time"] = unixTime;
-  objectWifi["value"] = signalQuality();
+  objectWifi["value"] = modem.getSignalQuality();
 
   serializeJson(payloadData, payloadBuffer);
   topic = "RAFT_Info";
-  // int len = strlen(payloadBuffer.c_str()); // Calculates Payload Size
-  // #ifdef MODEM_WIFI
-  //   rainflowMQTT.publish(topic.c_str(), 2, false, payloadBuffer.c_str(), len, false, 0); // Publishes payload to server
-  //   DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
-  //   DEBUG_PRINT("payloadData Mem:" + String(payloadData.memoryUsage()));
-  // #endif
 
   if (connected)
   {
@@ -739,14 +756,13 @@ void infoPublish(bool connected)
 void publishData()
 {
   indicatorLED1(true);
-
-  connectGSM(GSM_BAUD, GSM_TX, GSM_RX, apn, gprsUser, gprsPass);
   gprsConnected = gprsConnect();
 
   if (gprsConnected)
   {
     mqtt.setServer("rainflow.live", 1883);
     unsigned long startTime = millis();
+    DEBUG_PRINT("Conneecting to MQTT server.");
     while (((!mqtt.connect(clientID, username, password)) && (millis() - startTime >= 30000)))
     { // connect will return 0 for connected
       DEBUG_PRINT("Retrying MQTT connection in 5 seconds...");
@@ -769,7 +785,7 @@ void publishData()
   }
 
   gprsDisconnect();
-  DEBUG_PRINT("Disconnect GPRS.");
+  DEBUG_PRINT("GPRS disconnected.");
 
   indicatorLED1(false);
 }
@@ -827,9 +843,6 @@ void setup()
   if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1)
   {
     uint64_t GPIO_reason = esp_sleep_get_ext1_wakeup_status();
-    // int GPIO = log(GPIO_reason) / log(2);
-    // DEBUG_PRINT("GPIO Reason:" + String(GPIO_reason));
-    // DEBUG_PRINT("GPIO:" + String(GPIO));
 
     if (GPIO_reason != 0)
     {
@@ -840,18 +853,6 @@ void setup()
     {
       Serial.printf("Wake up from GPIO\n");
     }
-
-    // if (GPIO == rainGaugePin)
-    // {
-    //   tippingBucket();
-    //   tipTime = 0;
-    // }
-
-    // if (GPIO == rainGaugePin2)
-    // {
-    //   tippingBucket2();
-    //   tipTime2 = 0;
-    // }
     tipTime = 0;
   }
 
@@ -871,12 +872,11 @@ void setup()
   attachRainGauge();
   attachBarometer();
   attachUS();
+  connectGSM(GSM_BAUD, GSM_TX, GSM_RX, apn, gprsUser, gprsPass);
   modem.init();
 
   if (bootCount == 1)
   {
-    modem.restart();
-    wait(5000);
     getHeight();
     if (heightWrite == true)
       setHeight();

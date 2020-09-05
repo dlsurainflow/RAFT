@@ -98,9 +98,9 @@ const char *gprsPass = "";
 #define GATEWAY_NUMBER "+639569109001"
 
 //* RAFT Credentials
-const char *clientID = "391bb25a53d250441d36b5012d9333eed923"; //* AKA Device ID
-const char *username = "391bb25a53d250441d36b5012d9333eed923"; //* AKA Token
-const char *password = "fee64b6efdae4ef99917af099baa94961bdb";
+const char *clientID = "bbb1691accc836be0958909cf8426e22b246"; //* AKA Device ID
+const char *username = "bbb1691accc836be0958909cf8426e22b246"; //* AKA Token
+const char *password = "aeff9fb2b53b2eba1b2ca8b218514615f995";
 const char *streamIDData = "RGAPI";
 const char *streamIDInfo = "RAFT_Info";
 

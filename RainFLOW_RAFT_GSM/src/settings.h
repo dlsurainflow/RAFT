@@ -37,7 +37,8 @@
 #define GSM_BAUD 9600         // GSM/GPRS Module Baud Rate
 #define GSM_RX 17             // GSM/GPRS Module RX Pin
 #define GSM_TX 16             // GSM/GPRS Module TX Pin
-#define SMS_ENABLED false     // SMS Enable
+#define GSM_RE 5              // GSM/GPRS Reset pin
+#define SMS_ENABLED true      // SMS Enable
 
 //* -- ULTRASONIC SENSOR SETTINGS [FOR FLOOD DEPTH]
 #define US_RX 14          // Ultrasonic Module RX Pin
@@ -54,7 +55,7 @@ TinyGPSPlus gps;
 HardwareSerial SerialGPS(1);
 
 //* -- RAIN GAUGE SETTINGS
-#define GPIO_PIN_BITMASK 0x800004000 // GPIO 35 (2^35 in Hex)
+#define GPIO_PIN_BITMASK 0x800000000 // GPIO 35 (2^35 in Hex)
 #define rainGaugePin 35              // Rain Guage Pin
 #define tipAmount 0.3636             //  This has not been calibrated yet as it will depend on your printing dimensions.
 /* 
@@ -87,7 +88,7 @@ BME280I2C bme(settings);
 
 //* GSM Internet Settings
 // const char *apn = "smartlte"; // For Smart Telecom
-const char *apn = "http.globe.com.ph"; // For Globe Telecom
+const char *apn = "asasf.globe.com.ph"; // For Globe Telecom
 const char *gprsUser = "";
 const char *gprsPass = "";
 #define GATEWAY_NUMBER "+639569109001"
@@ -105,6 +106,8 @@ const char *streamIDInfo = "RAFT_Info";
 #ifdef DEBUG_MODE
 #define DUMP_AT_COMMANDS
 #endif
+
+#define DUMP_AT_COMMANDS
 
 HardwareSerial SerialGSM(2);
 TinyGsm modem(SerialGSM);
