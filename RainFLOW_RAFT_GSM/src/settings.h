@@ -30,6 +30,7 @@
 #define BATTMAXVOLT 4.2     // Maximum Battery Voltage
 #define BATTMINVOLT 3.6     // Minimum Battery Voltage
 #define BATTERYPIN 34       // Battery PIN
+#define BATT_OFFSET 0.300   // ADC Voltage Offset
 #define BATTERYRATIO 0.7725 // Battery voltage divider ratio
 
 //* -- GSM DEFINITIONS
@@ -88,15 +89,15 @@ BME280I2C bme(settings);
 
 //* GSM Internet Settings
 // const char *apn = "smartlte"; // For Smart Telecom
-const char *apn = "asasf.globe.com.ph"; // For Globe Telecom
+const char *apn = "internet.globe.com.ph"; // For Globe Telecom
 const char *gprsUser = "";
 const char *gprsPass = "";
-#define GATEWAY_NUMBER "+639569109001"
+#define GATEWAY_NUMBER "+639771754706"
 
 //* RAFT Credentials
 const char *clientID = "bbb1691accc836be0958909cf8426e22b246"; //* AKA Device ID
-const char *username = "bbb1691accc836be0958909cf8426e22b246"; //* AKA Token
-const char *password = "aeff9fb2b53b2eba1b2ca8b218514615f995";
+const char *username = "bbb1691accc836be0958909cf8426e22b246";
+const char *password = "aeff9fb2b53b2eba1b2ca8b218514615f995"; //* AKA Token
 const char *streamIDData = "RGAPI";
 const char *streamIDInfo = "RAFT_Info";
 

@@ -179,7 +179,56 @@ void resetModem()
 }
 #endif
 ///////////////////////// END GSM/GPRS  ///////////////////////
+void connectWifi(const char *ssid, const char *password)
+{
+  uint8_t i = 0;
 
+  DEBUG_PRINT("WIFI Status = " + String(WiFi.getMode()));
+  WiFi.disconnect(true);
+  wait(1000);
+
+  WiFi.mode(WIFI_STA);
+  wait(2000);
+
+  DEBUG_PRINT("WIFI Status = " + String(WiFi.getMode()));
+  WiFi.begin(ssid, password);
+  DEBUG_PRINT("Connecting to " + String(ssid));
+
+  unsigned long start = millis();
+  while ((WiFi.status() != WL_CONNECTED) && ((millis() - start) >= 30000))
+  {
+    DEBUG_PRINT("Attempting to connect...");
+    wait(500);
+
+    if ((++i % 16) == 0)
+    {
+      DEBUG_PRINT("Still attempting to connect...");
+    }
+
+    // if ((millis() - start) >= 30000) // 30s timeout
+    //   break;
+  }
+
+  wait(5000);
+}
+void disconnectWifi()
+{
+  WiFi.disconnect();
+  WiFi.mode(WIFI_OFF);
+}
+int32_t getRSSI()
+{
+  byte available_networks = WiFi.scanNetworks();
+
+  for (int network = 0; network < available_networks; network++)
+  {
+    if (strcmp(WiFi.SSID(network).c_str(), ssid) == 0)
+    {
+      return WiFi.RSSI(network);
+    }
+  }
+  return 0;
+}
 ///////////////////////// GPS  ///////////////////////
 void attachGPS()
 {
@@ -404,7 +453,7 @@ double getBatteryVoltage()
   double sum = 0;
   for (int j = 0; j < sampleRate; j++)
   {
-    double currentVoltage = ((double)ReadVoltage(BATTERYPIN) + .300) / (double)BATTERYRATIO;
+    double currentVoltage = ((double)ReadVoltage(BATTERYPIN) + BATT_OFFSET) / (double)BATTERYRATIO;
     sum += currentVoltage;
     // DEBUG_PRINT("Current Voltage: " + String(currentVoltage));
     wait(10);
@@ -1092,6 +1141,11 @@ void publishData()
         mqtt.disconnect();
         DEBUG_PRINT("Disconnected from MQTT server.");
       }
+      else if (!mqtt.connected() && SMS_ENABLED)
+      {
+        dataPublish(mqtt.connected());
+        infoPublish(mqtt.connected());
+      }
     }
     else if (!wifiConnected && !gprsConnected && SMS_ENABLED)
     {
@@ -1161,9 +1215,6 @@ void setup()
   if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1)
   {
     uint64_t GPIO_reason = esp_sleep_get_ext1_wakeup_status();
-    // int GPIO = log(GPIO_reason) / log(2);
-    // DEBUG_PRINT("GPIO Reason:" + String(GPIO_reason));
-    // DEBUG_PRINT("GPIO:" + String(GPIO));
 
     if (GPIO_reason != 0)
     {
@@ -1174,18 +1225,6 @@ void setup()
     {
       Serial.printf("Wake up from GPIO\n");
     }
-
-    // if (GPIO == rainGaugePin)
-    // {
-    //   tippingBucket();
-    //   tipTime = 0;
-    // }
-
-    // if (GPIO == rainGaugePin2)
-    // {
-    //   tippingBucket2();
-    //   tipTime2 = 0;
-    // }
     tipTime = 0;
   }
 

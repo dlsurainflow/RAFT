@@ -395,7 +395,7 @@ double getBatteryVoltage()
   double sum = 0;
   for (int j = 0; j < sampleRate; j++)
   {
-    double currentVoltage = ((double)ReadVoltage(BATTERYPIN) + .300) / (double)BATTERYRATIO;
+    double currentVoltage = ((double)ReadVoltage(BATTERYPIN) + BATT_OFFSET) / (double)BATTERYRATIO;
     sum += currentVoltage;
     // DEBUG_PRINT("Current Voltage: " + String(currentVoltage));
     wait(10);
@@ -776,6 +776,11 @@ void publishData()
       infoPublish(mqtt.connected());
       mqtt.disconnect();
       DEBUG_PRINT("Disconnected from MQTT server.");
+    }
+    else if (!mqtt.connected() && SMS_ENABLED)
+    {
+      dataPublish(mqtt.connected());
+      infoPublish(mqtt.connected());
     }
   }
   else if (!gprsConnected && SMS_ENABLED)
