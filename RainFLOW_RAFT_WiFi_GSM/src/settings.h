@@ -38,8 +38,9 @@
 #define GSM_BAUD 9600         // GSM/GPRS Module Baud Rate
 #define GSM_RX 17             // GSM/GPRS Module RX Pin
 #define GSM_TX 16             // GSM/GPRS Module TX Pin
-//#define GSM_ENABLED   // Use GSM/GPRS for Data Telemetry
-#define SMS_ENABLED false // SMS Enable
+#define GSM_RE 5              // GSM/GPRS Reset pin
+#define GSM_ENABLED           // Use GSM/GPRS for Data Telemetry
+#define SMS_ENABLED false     // SMS Enable
 
 //* -- ULTRASONIC SENSOR SETTINGS [FOR FLOOD DEPTH]
 #define US_RX 14          // Ultrasonic Module RX Pin
@@ -123,8 +124,8 @@ bool wifiConnected = false;
 
 HardwareSerial SerialGSM(2);
 TinyGsm modem(SerialGSM);
-TinyGsmClient client(modem);
+TinyGsmClient clientGSM(modem);
 
-Adafruit_MQTT_Client mqtt(&client, "rainflow.live", 1883, clientID, username, password);
+PubSubClient mqtt(clientGSM);
 bool gprsConnected = false;
 #endif

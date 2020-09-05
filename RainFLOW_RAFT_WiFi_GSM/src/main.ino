@@ -116,7 +116,7 @@ bool gprsConnect()
   wait(30000);
   modem.init();
 
-  unsigned long currentMillis = millis();
+  // unsigned long currentMillis = millis();
   DEBUG_PRINT("Connecting to GPRS.");
   if (!modem.gprsConnect(apn, gprsUser, gprsPass))
   {
@@ -1054,7 +1054,7 @@ void infoPublish(bool _wifiConnected, bool _gprsConnected)
   }
 
 #ifdef GSM_ENABLED
-  if (!__wifiConnected)
+  if (!_wifiConnected)
   {
     JsonObject objectWifi = payload_Data.createNestedObject("wifiRSSI");
     objectWifi["time"] = unixTime;
@@ -1136,15 +1136,15 @@ void publishData()
       if (mqtt.connected())
       {
         DEBUG_PRINT("Connected to MQTT server.");
-        dataPublish(mqtt.connected());
-        infoPublish(mqtt.connected());
+        dataPublish(wifiConnected, mqtt.connected());
+        infoPublish(wifiConnected, mqtt.connected());
         mqtt.disconnect();
         DEBUG_PRINT("Disconnected from MQTT server.");
       }
       else if (!mqtt.connected() && SMS_ENABLED)
       {
-        dataPublish(mqtt.connected());
-        infoPublish(mqtt.connected());
+        dataPublish(wifiConnected, mqtt.connected());
+        infoPublish(wifiConnected, mqtt.connected());
       }
     }
     else if (!wifiConnected && !gprsConnected && SMS_ENABLED)
