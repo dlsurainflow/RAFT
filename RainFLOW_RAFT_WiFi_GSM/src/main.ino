@@ -778,18 +778,18 @@ void modeCheck()
   //if (getBatteryVoltage() <= BATTMINVOLT) // Sleep immediately to conserve power and avoid data corruption
     //sleepNoInterrupt(1800);               // Deep Sleep without Interrupt for 30 minutes)
 
-//  if (((curFloodDepth < minFloodDepth) && ((currentTime - lastDetectedTipMillis) >= lastTipTime)) || ((currentMode == 0) && (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER)))
-  //{
-  //  mode_Standby();
- // }
- // else if (((curFloodDepth >= minFloodDepth) || ((currentTime - lastDetectedTipMillis) < lastTipTime)) && (curBattLevel > 20.00))
-  //{
-   // mode_ContinuousMonitoring();
- // }
-  //else if (((curFloodDepth >= minFloodDepth) || ((currentTime - lastDetectedTipMillis) < lastTipTime)) && (curBattLevel <= 20.00))
-  //{
-    //mode_BatterySaver();
-  //}
+  if (((curFloodDepth < minFloodDepth) && ((currentTime - lastDetectedTipMillis) >= lastTipTime)) || ((currentMode == 0) && (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER)))
+  {
+    mode_Standby();
+  }
+  else if (((curFloodDepth >= minFloodDepth) || ((currentTime - lastDetectedTipMillis) < lastTipTime)) && (curBattLevel > 20.00))
+  {
+    mode_ContinuousMonitoring();
+  }
+  else if (((curFloodDepth >= minFloodDepth) || ((currentTime - lastDetectedTipMillis) < lastTipTime)) && (curBattLevel <= 20.00))
+  {
+    mode_BatterySaver();
+  }
 }
 void mode_Standby()
 {
