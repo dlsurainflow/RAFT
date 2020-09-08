@@ -30,6 +30,7 @@
 #define BATTMAXVOLT 4.2   // Maximum Battery Voltage
 #define BATTMINVOLT 3.6   // Minimum Battery Voltage
 #define BATTERYPIN 34     // Battery PIN
+#define BATT_OFFSET 0.38  // ADC Voltage Offset
 #define BATTERYRATIO 0.78 // Battery voltage divider ratio
 
 //* -- GSM DEFINITIONS
@@ -37,8 +38,9 @@
 #define GSM_BAUD 9600         // GSM/GPRS Module Baud Rate
 #define GSM_RX 17             // GSM/GPRS Module RX Pin
 #define GSM_TX 16             // GSM/GPRS Module TX Pin
-//#define GSM_ENABLED   // Use GSM/GPRS for Data Telemetry
-#define SMS_ENABLED false // SMS Enable
+#define GSM_RE 5              // GSM/GPRS Reset pin
+#define GSM_ENABLED           // Use GSM/GPRS for Data Telemetry
+#define SMS_ENABLED false     // SMS Enable
 
 //* -- ULTRASONIC SENSOR SETTINGS [FOR FLOOD DEPTH]
 #define US_RX 14          // Ultrasonic Module RX Pin
@@ -66,7 +68,6 @@ Rain gauge tips 38 times with 100mL of water.
 Rain gauge radius is 5.72 cm.
 tipAmount  = (100mL/38tips)/(pi*5.72cm*5.72cm)
 tipAmount = 0.0256cm/tip or 0.256mm 
-
 NOTE: tipAmount should be in millimeters (mm)
 */
 
@@ -87,21 +88,21 @@ BME280I2C::Settings settings(
 BME280I2C bme(settings);
 
 //* WiFi Access Point Settings
-const char *ssid = "SKYbroadband9CE4";
-const char *wifi_pass = "286170965";
+const char *ssid = "Hidden Network";
+const char *wifi_pass = "mmbmh15464";
 
 //* GSM Internet Settings
-const char *apn = "smartlte"; // For Smart Telecom
-//const char *apn = "internet.globe.com.ph";  // For Globe Telecom
+// const char *apn = "smartlte"; // For Smart Telecom
+const char *apn = "internet.globe.com.ph"; // For Globe Telecom
 const char *gprsUser = "";
 const char *gprsPass = "";
-#define GATEWAY_NUMBER "+639569109001"
+#define GATEWAY_NUMBER "+639664578279"
 
 //* RAFT Credentials
-	const char *clientID = "29411b5610ebe12914592a9f8aae2f242e2b";
-	const char *username = "29411b5610ebe12914592a9f8aae2f242e2b";
-	const char *password = "e9b2bb429ee2d6192d4ee48b69e2443126c2";
-	const char *streamIDData = "RGAPI";
+const char *clientID = "9edca59604591499eea9ceee65c2ea931e96"; //* AKA Device ID
+const char *username = "9edca59604591499eea9ceee65c2ea931e96";
+const char *password = "fee64b6efdae4ef99917af099baa94961bdb"; //* AKA Token
+const char *streamIDData = "RGAPI";
 const char *streamIDInfo = "RAFT_Info";
 
 #include <WiFi.h>
@@ -122,8 +123,8 @@ bool wifiConnected = false;
 
 HardwareSerial SerialGSM(2);
 TinyGsm modem(SerialGSM);
-TinyGsmClient client(modem);
+TinyGsmClient clientGSM(modem);
 
-Adafruit_MQTT_Client mqtt(&client, "rainflow.live", 1883, clientID, username, password);
+PubSubClient mqtt(clientGSM);
 bool gprsConnected = false;
 #endif
