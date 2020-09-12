@@ -21,7 +21,7 @@
 #define DEBUG_MODE             // Enables Debug Mode
 #define uS_TO_S_FACTOR 1000000 // Conversion factor for micro seconds to seconds [DO NOT CHANGE]
 
-//* -- INDICATED LED SETTINGS
+//* -- INDICATOR LED SETTINGS
 #define LEDPin 18              // LED Indicator Pin
 #define LEDPin1 19             // LED Indicator Pin
 #define INDICATOR_ENABLED true // LED Indicators Enabled
@@ -57,7 +57,7 @@ TinyGPSPlus gps;
 HardwareSerial SerialGPS(1);
 
 //* -- RAIN GAUGE SETTINGS
-#define GPIO_PIN_BITMASK 0x800004000 // GPIO 35 (2^35 in Hex)
+#define GPIO_PIN_BITMASK 0x800000000 // GPIO 35 (2^35 in Hex)
 #define rainGaugePin 35              // Rain Guage Pin
 #define tipAmount 0.3636             //  This has not been calibrated yet as it will depend on your printing dimensions.
 /* 

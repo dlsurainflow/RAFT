@@ -16,12 +16,12 @@
 #include <Update.h>
 #include <Wire.h>
 
-//  -- RAFT Settings
+//*  -- RAFT Settings
 #define MICRO_BAUD_RATE 115200 // Microcontroller Serial Port Baud Rate
 #define DEBUG_MODE             // Enables Debug Mode
 #define uS_TO_S_FACTOR 1000000 // Conversion factor for micro seconds to seconds [DO NOT CHANGE]
 
-//* -- INDICATED LED SETTINGS
+//* -- INDICATOR LED SETTINGS
 #define LEDPin 18              // LED Indicator Pin
 #define LEDPin1 19             // LED Indicator Pin
 #define INDICATOR_ENABLED true // LED Indicators Enabled
@@ -33,7 +33,7 @@
 #define BATT_OFFSET 0.300   // ADC Voltage Offset
 #define BATTERYRATIO 0.7725 // Battery voltage divider ratio
 
-//* -- GSM DEFINITIONS
+//* -- GSM SETTINGS
 #define TINY_GSM_MODEM_SIM800 // GSM/GPRS Module Model
 #define GSM_BAUD 9600         // GSM/GPRS Module Baud Rate
 #define GSM_RX 17             // GSM/GPRS Module RX Pin
