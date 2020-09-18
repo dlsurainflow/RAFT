@@ -511,11 +511,17 @@ float getAltitude()
 }
 float getPressure()
 {
-  return bme.pres();
+  if ((bme.chipModel() == BME280::ChipModel_BMP280) || (bme.chipModel() == BME280::ChipModel_BME280))
+    return bme.pres();
+  else
+    return 0;
 }
 float getTemperature()
 {
-  return bme.temp();
+  if ((bme.chipModel() == BME280::ChipModel_BMP280) || (bme.chipModel() == BME280::ChipModel_BME280))
+    return bme.temp();
+  else
+    return 0;
 }
 float getHumidity()
 {
