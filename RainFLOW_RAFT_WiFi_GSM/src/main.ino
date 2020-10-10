@@ -774,9 +774,16 @@ void onMqttUnsubscribe(uint16_t packetId)
 }
 void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
 {
-  DEBUG_PRINT("Message Received. ");
+  DEBUG_PRINT("Message Received.");
   DEBUG_PRINT("Topic: " + String(topic));
   DEBUG_PRINT("Payload: " + String(payload));
+  if (strcmp(topic, "/set/datasizeUS"))
+  {
+    DynamicJsonDocument doc(256);
+    deserializeJson(doc, payload);
+    datasizeUS = doc["value"];
+    DEBUG_PRINT("datasizeUS changed to " + String(datasizeUS));
+  }
 
   if (String(topic) == "update")
   {
@@ -921,12 +928,11 @@ void wait(unsigned long interval)
   {
   }
 }
-void dataPublish(bool _wifiConnected, bool _gprsConnected)
+
+String retrieveData()
 {
   DynamicJsonDocument payloadData(1024);
   String payloadBuffer;
-  String topic;
-  int len;
 
   payloadData["data_type"] = "event";
   payloadData["stream_id"] = streamIDData;
@@ -997,33 +1003,217 @@ void dataPublish(bool _wifiConnected, bool _gprsConnected)
   objectFloodDepth["value"] = getDepth();
 
   serializeJson(payloadData, payloadBuffer);
-  topic = "RAFT_Data";
-  len = strlen(payloadBuffer.c_str()); // Calculates Payload Size
+  return payloadBuffer;
+}
+// void dataPublish(bool _wifiConnected, bool _gprsConnected)
+// {
+//   DynamicJsonDocument payloadData(1024);
+//   String payloadBuffer;
+//   String topic;
+//   int len;
+
+//   payloadData["data_type"] = "event";
+//   payloadData["stream_id"] = streamIDData;
+
+//   DEBUG_PRINT("Retrieving data.");
+//   String unixTime = getUnixTime();
+//   DEBUG_PRINT("Current time: " + String(unixTime));
+//   JsonObject payload_Data = payloadData.createNestedObject("data");
+
+//   DEBUG_PRINT("Retrieving Latitude.");
+//   JsonObject objectLatitude = payload_Data.createNestedObject("LAT1");
+//   objectLatitude["time"] = unixTime;
+//   objectLatitude["value"] = gps.location.lat();
+
+//   DEBUG_PRINT("Retrieving Longitude.");
+//   JsonObject objectLongitude = payload_Data.createNestedObject("LNG1");
+//   objectLongitude["time"] = unixTime;
+//   objectLongitude["value"] = gps.location.lng();
+
+//   DEBUG_PRINT("Retrieving Altitude.");
+//   JsonObject objectAltitude = payload_Data.createNestedObject("ALT1");
+//   objectAltitude["time"] = unixTime;
+//   objectAltitude["value"] = getAltitude();
+
+//   DEBUG_PRINT("Retrieving Rain Rate.");
+//   JsonObject objectRainRate = payload_Data.createNestedObject("RR1");
+//   objectRainRate["time"] = unixTime;
+//   objectRainRate["value"] = rainfallRate();
+
+//   DEBUG_PRINT("Retrieving Rain Amount.");
+//   JsonObject objectRainAmount = payload_Data.createNestedObject("RA1");
+//   objectRainAmount["time"] = unixTime;
+//   objectRainAmount["value"] = rainfallAmount();
+
+//   DEBUG_PRINT("Retrieving Temperature.");
+//   JsonObject objectTemp = payload_Data.createNestedObject("TMP1");
+//   objectTemp["time"] = unixTime;
+//   objectTemp["value"] = getTemperature();
+
+//   DEBUG_PRINT("Retrieving Pressure.");
+//   JsonObject objectPress = payload_Data.createNestedObject("PR1");
+//   objectPress["time"] = unixTime;
+//   objectPress["value"] = getPressure();
+
+//   DEBUG_PRINT("Retrieving Humidity.");
+//   JsonObject objectHumid = payload_Data.createNestedObject("HU1");
+//   objectHumid["time"] = unixTime;
+//   objectHumid["value"] = getHumidity();
+
+//   DEBUG_PRINT("Retrieving DewPoint.");
+//   JsonObject objectDew = payload_Data.createNestedObject("DP1");
+//   objectDew["time"] = unixTime;
+//   objectDew["value"] = getDewPoint();
+
+//   DEBUG_PRINT("Retrieving Heat Index.");
+//   JsonObject objectHeat = payload_Data.createNestedObject("HI1");
+//   objectHeat["time"] = unixTime;
+//   objectHeat["value"] = getHeadIndex();
+
+//   DEBUG_PRINT("Retrieving Battery Votlage.");
+//   JsonObject objectBatt = payload_Data.createNestedObject("BV1");
+//   objectBatt["time"] = unixTime;
+//   objectBatt["value"] = getBatteryVoltage();
+
+//   DEBUG_PRINT("Retrieving Flood Depth.");
+//   JsonObject objectFloodDepth = payload_Data.createNestedObject("FD1");
+//   objectFloodDepth["time"] = unixTime;
+//   objectFloodDepth["value"] = getDepth();
+
+//   serializeJson(payloadData, payloadBuffer);
+//   topic = "RAFT_Data";
+//   len = strlen(payloadBuffer.c_str()); // Calculates Payload Size
+
+//   if (_wifiConnected)
+//   {
+//     rainflowMQTT.publish(topic.c_str(), 2, false, payloadBuffer.c_str(), len, false, 0); // Publishes payload to server
+//     DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
+//     DEBUG_PRINT("payloadData Mem:" + String(payloadData.memoryUsage()));
+//   }
+// #ifdef GSM_ENABLED
+//   if (_gprsConnected)
+//   {
+//     bool published = mqtt.publish(topic.c_str(), payloadBuffer.c_str());
+//     DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
+//     DEBUG_PRINT("Published: " + String(published));
+//   }
+//   else if (!_gprsConnected && SMS_ENABLED)
+//   {
+//     publishSMS(topic.c_str(), payloadBuffer.c_str());
+//   }
+
+// #endif
+
+//   wait(1000);
+// }
+// void infoPublish(bool _wifiConnected, bool _gprsConnected)
+// {
+//   DynamicJsonDocument payloadData(1024);
+//   String payloadBuffer;
+//   String topic;
+//   int len;
+
+//   payloadData["data_type"] = "event";
+//   payloadData["stream_id"] = streamIDInfo;
+
+//   DEBUG_PRINT("Retrieving info.");
+//   String unixTime = getUnixTime();
+//   DEBUG_PRINT("Current time: " + String(unixTime));
+//   JsonObject payload_Data = payloadData.createNestedObject("data");
+//   JsonObject objectFirmware = payload_Data.createNestedObject("FirmwareVer");
+//   objectFirmware["time"] = unixTime;
+//   objectFirmware["value"] = FIRMWARE_VER;
+
+//   JsonObject objectBoot = payload_Data.createNestedObject("bootCount");
+//   objectBoot["time"] = unixTime;
+//   objectBoot["value"] = bootCount;
+
+//   JsonObject objectDate = payload_Data.createNestedObject("RGDate");
+//   objectDate["time"] = unixTime;
+//   objectDate["value"] = rainGaugeDate;
+
+//   JsonObject objectTip = payload_Data.createNestedObject("tipCount");
+//   objectTip["time"] = unixTime;
+//   objectTip["value"] = tipCount;
+
+//   JsonObject objectHeight = payload_Data.createNestedObject("Height");
+//   objectHeight["time"] = unixTime;
+//   objectHeight["value"] = medianGetHeight;
+
+//   JsonObject objectMode = payload_Data.createNestedObject("Mode");
+//   objectMode["time"] = unixTime;
+//   objectMode["value"] = currentMode;
+
+//   if (_wifiConnected)
+//   {
+//     JsonObject objectWifi = payload_Data.createNestedObject("wifiRSSI");
+//     objectWifi["time"] = unixTime;
+//     objectWifi["value"] = getRSSI();
+//   }
+
+// #ifdef GSM_ENABLED
+//   if (!_wifiConnected)
+//   {
+//     JsonObject objectWifi = payload_Data.createNestedObject("wifiRSSI");
+//     objectWifi["time"] = unixTime;
+//     objectWifi["value"] = signalQuality();
+//   }
+// #endif
+
+//   serializeJson(payloadData, payloadBuffer);
+//   topic = "RAFT_Info";
+//   len = strlen(payloadBuffer.c_str()); // Calculates Payload Size
+
+//   if (_wifiConnected)
+//   {
+//     rainflowMQTT.publish(topic.c_str(), 2, false, payloadBuffer.c_str(), len, false, 0); // Publishes payload to server
+//     DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
+//     DEBUG_PRINT("payloadData Mem:" + String(payloadData.memoryUsage()));
+//   }
+
+// #ifdef GSM_ENABLED
+//   if (_gprsConnected)
+//   {
+//     bool published = mqtt.publish(topic.c_str(), payloadBuffer.c_str());
+//     DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
+//     DEBUG_PRINT("Published: " + String(published));
+//   }
+//   else if (!_gprsConnected && SMS_ENABLED)
+//   {
+//     publishSMS(topic.c_str(), payloadBuffer.c_str());
+//   }
+
+// #endif
+
+//   wait(1000);
+// }
+
+void publishMQTT(String payload, bool _wifiConnected, bool _gprsConnected)
+{
+  //! Publish sensor data
+  String topicData = "RAFT_Data";
 
   if (_wifiConnected)
   {
-    rainflowMQTT.publish(topic.c_str(), 2, false, payloadBuffer.c_str(), len, false, 0); // Publishes payload to server
-    DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
-    DEBUG_PRINT("payloadData Mem:" + String(payloadData.memoryUsage()));
+    rainflowMQTT.publish(topicData.c_str(), 2, false, payload.c_str(), strlen(payload.c_str()), false, 0); // Publishes payload to server
+    DEBUG_PRINT("Published @ " + String(topicData) + "\n" + String(payload));
   }
+
 #ifdef GSM_ENABLED
   if (_gprsConnected)
   {
-    bool published = mqtt.publish(topic.c_str(), payloadBuffer.c_str());
-    DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
+    bool published = mqtt.publish(topicData.c_str(), payload.c_str());
+    DEBUG_PRINT("Published @ " + String(topicData) + "\n" + String(payload));
     DEBUG_PRINT("Published: " + String(published));
   }
   else if (!_gprsConnected && SMS_ENABLED)
   {
-    publishSMS(topic.c_str(), payloadBuffer.c_str());
+    publishSMS(topicData.c_str(), payload.c_str());
   }
-
 #endif
 
-  wait(1000);
-}
-void infoPublish(bool _wifiConnected, bool _gprsConnected)
-{
+  //! Publish RAFT Info
+
   DynamicJsonDocument payloadData(1024);
   String payloadBuffer;
   String topic;
@@ -1098,14 +1288,13 @@ void infoPublish(bool _wifiConnected, bool _gprsConnected)
   {
     publishSMS(topic.c_str(), payloadBuffer.c_str());
   }
-
 #endif
-
-  wait(1000);
 }
+
 void publishData()
 {
   indicatorLED1(true);
+  String dataPayload = retrieveData();
 
   if (WiFi.status() != WL_CONNECTED)
   {
@@ -1123,8 +1312,7 @@ void publishData()
     if (rainflowMQTT.connected())
     {
       rainflowMQTT.subscribe("inbox", 2);
-      dataPublish(rainflowMQTT.connected(), false);
-      infoPublish(rainflowMQTT.connected(), false);
+      publishMQTT(dataPayload, rainflowMQTT.connected(), false);
     }
 
     rainflowMQTT.disconnect();
@@ -1150,21 +1338,18 @@ void publishData()
       if (mqtt.connected())
       {
         DEBUG_PRINT("Connected to MQTT server.");
-        dataPublish(wifiConnected, mqtt.connected());
-        infoPublish(wifiConnected, mqtt.connected());
+        publishMQTT(dataPayload, wifiConnected, mqtt.connected());
         mqtt.disconnect();
         DEBUG_PRINT("Disconnected from MQTT server.");
       }
       else if (!mqtt.connected() && SMS_ENABLED)
       {
-        dataPublish(wifiConnected, mqtt.connected());
-        infoPublish(wifiConnected, mqtt.connected());
+        publishMQTT(dataPayload, wifiConnected, mqtt.connected());
       }
     }
     else if (!wifiConnected && !gprsConnected && SMS_ENABLED)
     {
-      dataPublish(wifiConnected, mqtt.connected());
-      infoPublish(wifiConnected, mqtt.connected());
+      publishMQTT(dataPayload, wifiConnected, mqtt.connected());
     }
 
     gprsDisconnect();

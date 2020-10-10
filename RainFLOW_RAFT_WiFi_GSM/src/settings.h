@@ -72,7 +72,7 @@ NOTE: tipAmount should be in millimeters (mm)
 */
 
 //* -- ULTRASONIC SENSOR SETTINGS
-const int datasizeUS = 15;
+int datasizeUS = 15;
 
 //* -- BAROMETER SETTINGS
 #define SEALEVELPRESSURE_HPA (1013.25) // Standard sea level pressure
