@@ -59,7 +59,7 @@ HardwareSerial SerialGPS(1);
 //* -- RAIN GAUGE SETTINGS
 #define GPIO_PIN_BITMASK 0x800000000 // GPIO 35 (2^35 in Hex)
 #define rainGaugePin 35              // Rain Guage Pin
-#define tipAmount 0.3636             //  This has not been calibrated yet as it will depend on your printing dimensions.
+#define tipAmount 0.264             //  This has not been calibrated yet as it will depend on your printing dimensions.
 /* 
 To calculate the tipAmount (amount of rainfall per tip), calibrate the rain gauge by slowly putting 100mL of water into the rain gauge. Then
 tipAmount = (100mL/#ofTips)/(pi*r*r)
@@ -88,21 +88,21 @@ BME280I2C::Settings settings(
 BME280I2C bme(settings);
 
 //* WiFi Access Point Settings
-const char *ssid = "Hidden Network";
-const char *wifi_pass = "mmbmh15464";
+const char *ssid = "SKYbroadband9CE4";
+const char *wifi_pass = "286170965";
 
 //* GSM Internet Settings
 // const char *apn = "smartlte"; // For Smart Telecom
 const char *apn = "internet.globe.com.ph"; // For Globe Telecom
 const char *gprsUser = "";
 const char *gprsPass = "";
-#define GATEWAY_NUMBER "+639664578279"
+#define GATEWAY_NUMBER "+639053702650"
 
 //* RAFT Credentials
-const char *clientID = "9edca59604591499eea9ceee65c2ea931e96"; //* AKA Device ID
-const char *username = "9edca59604591499eea9ceee65c2ea931e96";
-const char *password = "fee64b6efdae4ef99917af099baa94961bdb"; //* AKA Token
-const char *streamIDData = "RGAPI";
+const char *clientID = "e3082f6aa214d0b4f6b829ee2430f984ab8b"; //* AKA Device ID
+const char *username = "e3082f6aa214d0b4f6b829ee2430f984ab8b";
+const char *password = "823894651bf9a562820b908225e2f1b094ef"; //* AKA Token
+const char *streamIDData = "RAFT_data";
 const char *streamIDInfo = "RAFT_Info";
 
 #include <WiFi.h>

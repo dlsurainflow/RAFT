@@ -359,7 +359,7 @@ void getHeight()
 
     duration = pulseIn(US_TX, HIGH, 26000);
     Serial.println(duration);
-    raftHeight = (((float)duration / (float)2) * (((float)331.4 + (float)(0.606 * (float)temp) + (float)(0.0124 * (float)hum)) / (float)10000));
+    raftHeight = (((float)duration * (float)1.5) * (((float)331.4 + (float)(0.606 * (float)temp) + (float)(0.0124 * (float)hum)) / (float)10000));
     if (abs(raftHeight) <= US_MAXHEIGHT)
     {
       medianGetHeight = medianFilter.AddValue(raftHeight);
@@ -369,7 +369,7 @@ void getHeight()
     DEBUG_PRINT("RAFT Height " + String(i) + ": " + String(medianGetHeight));
     counter++;
 
-    DEBUG_PRINT("HERREERERERERe Height: " + String(medianGetHeight));
+    DEBUG_PRINT("Median Height: " + String(medianGetHeight));
     if (counter >= (datasizeUS + 10)) // Max attempts of datasizeUS + 10 counts
       break;
 
@@ -404,7 +404,7 @@ float getDepth()
 
     duration = pulseIn(US_TX, HIGH, 26000);
 
-    floodDepth = ((float)duration / (float)2) * (((float)331.4 + ((float)0.606 * (float)temp) + ((float)0.0124 * (float)hum)) / (float)10000);
+    floodDepth = ((float)duration * (float)1.5) * (((float)331.4 + ((float)0.606 * (float)temp) + ((float)0.0124 * (float)hum)) / (float)10000);
 
     if (abs(floodDepth) <= US_MAXHEIGHT)
     {
@@ -428,10 +428,10 @@ float getDepth()
   indicatorLED(false);
 
   DEBUG_PRINT("Flood Depth: " + String(medianDepth));
-  if (floodDepth < 0)
+  if (medianDepth < 0)
     return 0;
   else
-    return floodDepth;
+    return medianDepth;
 }
 
 ///////////////////////// END ULTRASONIC  ///////////////////////
