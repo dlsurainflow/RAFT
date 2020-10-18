@@ -40,7 +40,7 @@
 #define GSM_TX 16             // GSM/GPRS Module TX Pin
 #define GSM_RE 5              // GSM/GPRS Reset pin
 #define GSM_ENABLED           // Use GSM/GPRS for Data Telemetry
-#define SMS_ENABLED false     // SMS Enable
+#define SMS_ENABLED true      // SMS Enable
 
 //* -- ULTRASONIC SENSOR SETTINGS [FOR FLOOD DEPTH]
 #define US_RX 14          // Ultrasonic Module RX Pin
@@ -59,7 +59,7 @@ HardwareSerial SerialGPS(1);
 //* -- RAIN GAUGE SETTINGS
 #define GPIO_PIN_BITMASK 0x800000000 // GPIO 35 (2^35 in Hex)
 #define rainGaugePin 35              // Rain Guage Pin
-#define tipAmount 0.264             //  This has not been calibrated yet as it will depend on your printing dimensions.
+#define tipAmount 0.264              //  This has not been calibrated yet as it will depend on your printing dimensions.
 /* 
 To calculate the tipAmount (amount of rainfall per tip), calibrate the rain gauge by slowly putting 100mL of water into the rain gauge. Then
 tipAmount = (100mL/#ofTips)/(pi*r*r)
@@ -72,7 +72,7 @@ NOTE: tipAmount should be in millimeters (mm)
 */
 
 //* -- ULTRASONIC SENSOR SETTINGS
-int datasizeUS = 15;
+int datasizeUS = 30;
 
 //* -- BAROMETER SETTINGS
 #define SEALEVELPRESSURE_HPA (1013.25) // Standard sea level pressure
@@ -88,20 +88,20 @@ BME280I2C::Settings settings(
 BME280I2C bme(settings);
 
 //* WiFi Access Point Settings
-const char *ssid = "SKYbroadband9CE4";
-const char *wifi_pass = "286170965";
+const char *ssid = "Hidden Network";
+const char *wifi_pass = "mmbmh15464";
 
 //* GSM Internet Settings
-// const char *apn = "smartlte"; // For Smart Telecom
-const char *apn = "internet.globe.com.ph"; // For Globe Telecom
+const char *apn = "smartlte"; // For Smart Telecom
+// const char *apn = "internet.globe.com.ph"; // For Globe Telecom
 const char *gprsUser = "";
 const char *gprsPass = "";
 #define GATEWAY_NUMBER "+639053702650"
 
 //* RAFT Credentials
-const char *clientID = "e3082f6aa214d0b4f6b829ee2430f984ab8b"; //* AKA Device ID
-const char *username = "e3082f6aa214d0b4f6b829ee2430f984ab8b";
-const char *password = "823894651bf9a562820b908225e2f1b094ef"; //* AKA Token
+const char *clientID = "391bb25a53d250441d36b5012d9333eed923"; //* AKA Device ID
+const char *username = "391bb25a53d250441d36b5012d9333eed923";
+const char *password = "fee64b6efdae4ef99917af099baa94961bdb"; //* AKA Token
 const char *streamIDData = "RAFT_data";
 const char *streamIDInfo = "RAFT_Info";
 

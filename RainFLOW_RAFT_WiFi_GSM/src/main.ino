@@ -1200,15 +1200,18 @@ void publishMQTT(String payload, bool _wifiConnected, bool _gprsConnected)
   }
 
 #ifdef GSM_ENABLED
-  if (_gprsConnected)
+  if (!_wifiConnected)
   {
-    bool published = mqtt.publish(topicData.c_str(), payload.c_str());
-    DEBUG_PRINT("Published @ " + String(topicData) + "\n" + String(payload));
-    DEBUG_PRINT("Published: " + String(published));
-  }
-  else if (!_gprsConnected && SMS_ENABLED)
-  {
-    publishSMS(topicData.c_str(), payload.c_str());
+    if (_gprsConnected)
+    {
+      bool published = mqtt.publish(topicData.c_str(), payload.c_str());
+      DEBUG_PRINT("Published @ " + String(topicData) + "\n" + String(payload));
+      DEBUG_PRINT("Published: " + String(published));
+    }
+    else if (!_gprsConnected && SMS_ENABLED)
+    {
+      publishSMS(topicData.c_str(), payload.c_str());
+    }
   }
 #endif
 
@@ -1242,9 +1245,12 @@ void publishMQTT(String payload, bool _wifiConnected, bool _gprsConnected)
   objectTip["time"] = unixTime;
   objectTip["value"] = tipCount;
 
+  float raftHeight = EEPROM.readFloat(0);
+  DEBUG_PRINT("RAFT Height: " + String(raftHeight));
+
   JsonObject objectHeight = payload_Data.createNestedObject("Height");
   objectHeight["time"] = unixTime;
-  objectHeight["value"] = medianGetHeight;
+  objectHeight["value"] = raftHeight;
 
   JsonObject objectMode = payload_Data.createNestedObject("Mode");
   objectMode["time"] = unixTime;
@@ -1278,15 +1284,18 @@ void publishMQTT(String payload, bool _wifiConnected, bool _gprsConnected)
   }
 
 #ifdef GSM_ENABLED
-  if (_gprsConnected)
+  if (!_wifiConnected)
   {
-    bool published = mqtt.publish(topic.c_str(), payloadBuffer.c_str());
-    DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
-    DEBUG_PRINT("Published: " + String(published));
-  }
-  else if (!_gprsConnected && SMS_ENABLED)
-  {
-    publishSMS(topic.c_str(), payloadBuffer.c_str());
+    if (_gprsConnected)
+    {
+      bool published = mqtt.publish(topic.c_str(), payloadBuffer.c_str());
+      DEBUG_PRINT("Published @ " + String(topic) + "\n" + String(payloadBuffer));
+      DEBUG_PRINT("Published: " + String(published));
+    }
+    else if (!_gprsConnected && SMS_ENABLED)
+    {
+      publishSMS(topic.c_str(), payloadBuffer.c_str());
+    }
   }
 #endif
 }
