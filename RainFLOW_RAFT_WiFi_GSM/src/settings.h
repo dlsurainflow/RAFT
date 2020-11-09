@@ -47,11 +47,13 @@
 #define US_TX 12          // Ultrasonic Module TX
 #define US_MAXHEIGHT 600  // Ultrasonic Max Height (cm)
 #define US_resetButton 13 // Reset Height Button
+#define suddenIncrease 5 //Allowable sudden increase in flood height
 
 //* -- GPS MODULE SETTINGS
 #define GPS_BAUD 9600 // GSM/GPRS Module TX Pin
 #define GPS_RX 26     // GSM/GPRS Module RX Pin
 #define GPS_TX 27     // GSM/GPRS Module TX Pin
+
 
 TinyGPSPlus gps;
 HardwareSerial SerialGPS(1);
@@ -88,20 +90,20 @@ BME280I2C::Settings settings(
 BME280I2C bme(settings);
 
 //* WiFi Access Point Settings
-const char *ssid = "Hidden Network";
-const char *wifi_pass = "mmbmh15464";
+const char *ssid = "SKYbroadband9CE4";
+const char *wifi_pass = "286170965";
 
 //* GSM Internet Settings
-const char *apn = "smartlte"; // For Smart Telecom
-// const char *apn = "internet.globe.com.ph"; // For Globe Telecom
+// const char *apn = "smartlte"; // For Smart Telecom
+const char *apn = "internet.globe.com.ph"; // For Globe Telecom
 const char *gprsUser = "";
 const char *gprsPass = "";
 #define GATEWAY_NUMBER "+639053702650"
 
 //* RAFT Credentials
-const char *clientID = "391bb25a53d250441d36b5012d9333eed923"; //* AKA Device ID
-const char *username = "391bb25a53d250441d36b5012d9333eed923";
-const char *password = "fee64b6efdae4ef99917af099baa94961bdb"; //* AKA Token
+const char *clientID = "e3082f6aa214d0b4f6b829ee2430f984ab8b"; //* AKA Device ID
+const char *username = "e3082f6aa214d0b4f6b829ee2430f984ab8b";
+const char *password = "823894651bf9a562820b908225e2f1b094ef"; //* AKA Token
 const char *streamIDData = "RAFT_data";
 const char *streamIDInfo = "RAFT_Info";
 

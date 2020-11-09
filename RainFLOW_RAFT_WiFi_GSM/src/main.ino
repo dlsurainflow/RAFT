@@ -435,7 +435,7 @@ float getDepth()
   else if (medianDepth> PreviousDepth+suddenIncrease)
     return PreviousDepth;
   else
-    medianDepth=PreviousDepth;
+    PreviousDepth=medianDepth;
     return medianDepth;
 }
 
