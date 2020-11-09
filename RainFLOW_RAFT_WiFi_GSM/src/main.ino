@@ -427,10 +427,15 @@ float getDepth()
   pinMode(US_TX, INPUT);
   indicatorLED(false);
 
+  int PreviousDepth=0;
+
   DEBUG_PRINT("Flood Depth: " + String(medianDepth));
   if (medianDepth < 0)
     return 0;
+  else if (medianDepth> PreviousDepth+suddenIncrease)
+    return PreviousDepth;
   else
+    medianDepth=PreviousDepth;
     return medianDepth;
 }
 
